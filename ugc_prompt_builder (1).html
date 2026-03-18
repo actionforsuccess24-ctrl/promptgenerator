@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UGC Prompt Builder v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--surface:#10101a;--card:#161620;--card2:#1c1c28;--border:#252535;--border2:#303048;--accent:#c084fc;--accent2:#f472b6;--accent3:#818cf8;--red:#f87171;--gold:#fbbf24;--green:#34d399;--cyan:#22d3ee;--text:#eeeeff;--muted:#7070a0;--muted2:#9090b8}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a0830 0%,#0c0818 40%,#180820 100%);border-bottom:1px solid var(--border);padding:26px 28px 22px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-80px;left:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(192,132,252,.12),transparent 70%);pointer-events:none}
+.hbadge{display:inline-flex;align-items:center;gap:5px;background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.25);border-radius:20px;padding:3px 12px;font-size:10.5px;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:9px}
+.header h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;background:linear-gradient(90deg,#c084fc,#f472b6,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.header p{font-size:12.5px;color:var(--muted);margin-top:5px}
+.prog-bar-wrap{height:2px;background:var(--border)}.prog-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.stepper{display:flex;align-items:center;padding:16px 28px;gap:0;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}.stepper::-webkit-scrollbar{height:0}
+.step-item{display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer}
+.step-num{width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);transition:all .25s;flex-shrink:0}
+.step-item.active .step-num{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 14px rgba(192,132,252,.5)}
+.step-item.done .step-num{background:var(--green);border-color:var(--green);color:#fff}
+.step-label{font-size:11.5px;color:var(--muted);font-weight:500}
+.step-item.active .step-label{color:var(--accent)}.step-item.done .step-label{color:var(--green)}
+.step-line{flex:1;min-width:14px;height:1px;background:var(--border);margin:0 5px}
+.main{padding:24px 28px;max-width:860px}
+.section{display:none}.section.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;margin-bottom:5px}
+.sec-desc{font-size:12.5px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:580px){.g2,.g3{grid-template-columns:1fr}}
+.field{margin-bottom:14px}.field label{display:block;font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.field label .req{color:var(--accent2);margin-left:2px}
+input[type=text],textarea,select{width:100%;background:var(--card);border:1.5px solid var(--border2);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;padding:10px 13px;outline:none;transition:border-color .2s,box-shadow .2s;resize:vertical}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,132,252,.1)}
+textarea{min-height:86px;line-height:1.6}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237070a0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;-webkit-appearance:none;appearance:none}
+select option{background:var(--card2)}
+.chip-label{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:18px;border:1.5px solid var(--border2);font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .18s;background:var(--card);user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(192,132,252,.06)}.chip.selected{background:rgba(192,132,252,.11);border-color:var(--accent);color:var(--accent)}
+.sdiv{margin:18px 0 13px;display:flex;align-items:center;gap:10px}
+.sdiv-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);white-space:nowrap}
+.sdiv-line{flex:1;height:1px;background:var(--border)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--card);border-radius:9px;border:1.5px solid var(--border2);margin-bottom:9px}
+.toggle-info{font-size:13px;line-height:1.3}.toggle-info small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.toggle{position:relative;width:38px;height:21px;flex-shrink:0}.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--border2);border-radius:21px;cursor:pointer;transition:.25s}
+.slider::before{content:'';position:absolute;width:15px;height:15px;border-radius:50%;background:white;left:3px;top:3px;transition:.25s}
+.toggle input:checked+.slider{background:var(--accent)}.toggle input:checked+.slider::before{transform:translateX(17px)}
+.hbox{background:rgba(192,132,252,.06);border:1px solid rgba(192,132,252,.18);border-radius:9px;padding:12px 15px;margin-bottom:13px;font-size:12.5px;color:#ccc4e8;line-height:1.6}
+.hbox strong{color:var(--accent)}.hbox-red{background:rgba(248,113,113,.05);border-color:rgba(248,113,113,.2);color:#e8c4c4}.hbox-red strong{color:var(--red)}
+.hbox-gold{background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.2);color:#e8dcc4}.hbox-gold strong{color:var(--gold)}
+.btn-row{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.btn{padding:11px 24px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;box-shadow:0 4px 18px rgba(192,132,252,.28)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(192,132,252,.42)}
+.btn-ghost{background:var(--card);color:var(--muted);border:1.5px solid var(--border2)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.out-tabs{display:flex;gap:4px;margin-bottom:13px;flex-wrap:wrap}
+.tab{padding:7px 16px;border-radius:7px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);color:var(--muted);background:var(--card);transition:all .18s}
+.tab.active{background:rgba(192,132,252,.12);border-color:var(--accent);color:var(--accent)}
+.out-panel{display:none}.out-panel.active{display:block}
+.code-box{background:#0a0a12;border:1.5px solid var(--border);border-radius:11px;padding:18px;font-family:'Courier New',monospace;font-size:11.5px;color:#c0c0de;white-space:pre-wrap;word-break:break-word;max-height:480px;overflow-y:auto;line-height:1.75;position:relative}
+.code-box::-webkit-scrollbar{width:5px}.code-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.copy-abs{position:absolute;top:10px;right:10px;background:var(--card2);border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;z-index:2}
+.copy-abs:hover{color:var(--green);border-color:var(--green)}
+.icard{background:var(--card);border:1.5px solid var(--border2);border-radius:11px;padding:14px;margin-bottom:11px}
+.icard-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:8px;flex-wrap:wrap}
+.icard-tag{background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);color:var(--accent3);border-radius:5px;padding:3px 9px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.icard-copy{background:var(--card2);border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s}
+.icard-copy:hover{color:var(--green);border-color:var(--green)}
+.icard-prompt{font-family:'Courier New',monospace;font-size:11px;color:#c8c8e0;line-height:1.7;background:#0a0a12;border-radius:7px;padding:11px 13px}
+
+/* OUTFIT GRID */
+.outfit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin-bottom:4px}
+.outfit-card{padding:11px 9px;border-radius:9px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;text-align:center;transition:all .18s;user-select:none}
+.outfit-card:hover{border-color:var(--accent);background:rgba(192,132,252,.06)}.outfit-card.selected{border-color:var(--accent);background:rgba(192,132,252,.1)}
+.outfit-card .oc-icon{font-size:22px;display:block;margin-bottom:5px}.outfit-card .oc-name{font-size:11px;font-weight:600;color:var(--muted2)}.outfit-card.selected .oc-name{color:var(--accent)}
+
+/* EXPRESSION GRID */
+.expr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:9px}
+.expr-card{padding:12px 11px;border-radius:10px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;transition:all .18s;user-select:none}
+.expr-card:hover{border-color:var(--accent)}.expr-card.selected{background:rgba(192,132,252,.1);border-color:var(--accent)}
+.ec-emoji{font-size:20px;display:block;margin-bottom:5px}.ec-name{font-size:12px;font-weight:700;color:var(--muted2);display:block}.ec-desc{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+.expr-card.selected .ec-name{color:var(--accent)}
+.expr-card.expr-serious.selected{border-color:var(--accent3);background:rgba(129,140,248,.1)}.expr-card.expr-serious.selected .ec-name{color:var(--accent3)}
+.expr-card.expr-worried.selected{border-color:var(--red);background:rgba(248,113,113,.1)}.expr-card.expr-worried.selected .ec-name{color:var(--red)}
+.expr-card.expr-casual.selected{border-color:var(--green);background:rgba(52,211,153,.1)}.expr-card.expr-casual.selected .ec-name{color:var(--green)}
+.expr-card.expr-sad.selected{border-color:var(--cyan);background:rgba(34,211,238,.1)}.expr-card.expr-sad.selected .ec-name{color:var(--cyan)}
+.expr-card.expr-happy.selected{border-color:var(--gold);background:rgba(251,191,36,.1)}.expr-card.expr-happy.selected .ec-name{color:var(--gold)}
+
+/* TONE GRID */
+.tone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:9px}
+.tcard{padding:12px 11px;border-radius:10px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;transition:all .18s;user-select:none}
+.tcard:hover,.tcard.selected{border-color:var(--accent);background:rgba(192,132,252,.08)}.tc-icon{font-size:20px;display:block;margin-bottom:5px}
+.tc-name{font-size:12px;font-weight:700;color:var(--muted2);display:block}.tc-desc{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.35}.tcard.selected .tc-name{color:var(--accent)}
+.tcard.t-worried:hover,.tcard.t-worried.selected{border-color:var(--red);background:rgba(248,113,113,.08)}.tcard.t-worried.selected .tc-name{color:var(--red)}
+.tcard.t-edu:hover,.tcard.t-edu.selected{border-color:var(--accent3);background:rgba(129,140,248,.08)}.tcard.t-edu.selected .tc-name{color:var(--accent3)}
+.tcard.t-grat:hover,.tcard.t-grat.selected{border-color:var(--accent2);background:rgba(244,114,182,.08)}.tcard.t-grat.selected .tc-name{color:var(--accent2)}
+.tcard.t-conf:hover,.tcard.t-conf.selected{border-color:var(--gold);background:rgba(251,191,36,.08)}.tcard.t-conf.selected .tc-name{color:var(--gold)}
+.tcard.t-hype:hover,.tcard.t-hype.selected{border-color:var(--green);background:rgba(52,211,153,.08)}.tcard.t-hype.selected .tc-name{color:var(--green)}
+.tcard.t-calm:hover,.tcard.t-calm.selected{border-color:var(--cyan);background:rgba(34,211,238,.08)}.tcard.t-calm.selected .tc-name{color:var(--cyan)}
+
+/* SCENE GRID */
+.scene-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:9px}
+.scene-card{padding:13px 12px;border-radius:10px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;transition:all .18s;user-select:none;position:relative;overflow:hidden}
+.scene-card:hover,.scene-card.selected{border-color:var(--accent)}.scene-card.selected{background:rgba(192,132,252,.08)}
+.scene-card.s-red.selected{border-color:var(--red);background:rgba(248,113,113,.07)}
+.scene-card.s-dark.selected{border-color:var(--accent3);background:rgba(129,140,248,.07)}
+.scene-card.s-med.selected{border-color:var(--green);background:rgba(52,211,153,.07)}
+.sc-icon{font-size:24px;display:block;margin-bottom:6px}.sc-name{font-size:12px;font-weight:700;color:var(--muted2);display:block}.sc-sub{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+.scene-card.selected .sc-name{color:var(--accent)}.scene-card.s-red.selected .sc-name{color:var(--red)}.scene-card.s-dark.selected .sc-name{color:var(--accent3)}.scene-card.s-med.selected .sc-name{color:var(--green)}
+
+/* LIGHTING GRID */
+.light-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:9px;margin-bottom:4px}
+.lcard{padding:13px 12px;border-radius:10px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;transition:all .18s;user-select:none}
+.lcard:hover,.lcard.selected{border-color:var(--accent);background:rgba(192,132,252,.08)}
+.lcard.l-red.selected{border-color:var(--red);background:rgba(248,113,113,.08)}
+.lcard.l-lamp.selected{border-color:var(--gold);background:rgba(251,191,36,.08)}
+.lcard.l-neon.selected{border-color:var(--accent3);background:rgba(129,140,248,.08)}
+.lc-icon{font-size:22px;display:block;margin-bottom:6px}.lc-name{font-size:12px;font-weight:700;color:var(--muted2);display:block}.lc-sub{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+.lcard.selected .lc-name{color:var(--accent)}.lcard.l-red.selected .lc-name{color:var(--red)}.lcard.l-lamp.selected .lc-name{color:var(--gold)}.lcard.l-neon.selected .lc-name{color:var(--accent3)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="hbadge">✦ UGC Prompt Builder v2</div>
+  <h1>AI Video Prompt Generator</h1>
+  <p>Text Prompt · JSON · Gemini Image Prompts — Advanced Customization</p>
+</div>
+<div class="prog-bar-wrap"><div class="prog-bar" id="pBar" style="width:16.6%"></div></div>
+
+<div class="stepper">
+  <div class="step-item active" onclick="goStep(1)"><div class="step-num">1</div><div class="step-label">Brand</div></div>
+  <div class="step-line"></div>
+  <div class="step-item" onclick="goStep(2)"><div class="step-num">2</div><div class="step-label">Talent</div></div>
+  <div class="step-line"></div>
+  <div class="step-item" onclick="goStep(3)"><div class="step-num">3</div><div class="step-label">Expression</div></div>
+  <div class="step-line"></div>
+  <div class="step-item" onclick="goStep(4)"><div class="step-num">4</div><div class="step-label">Scene</div></div>
+  <div class="step-line"></div>
+  <div class="step-item" onclick="goStep(5)"><div class="step-num">5</div><div class="step-label">Script</div></div>
+  <div class="step-line"></div>
+  <div class="step-item" onclick="goStep(6)"><div class="step-num">6</div><div class="step-label">Output</div></div>
+</div>
+
+<div class="main">
+
+<!-- STEP 1 -->
+<div class="section active" id="step1">
+  <div class="sec-title">🏷️ Brand & Concept</div>
+  <div class="sec-desc">Ano yung brand, product, o concept ng video?</div>
+  <div class="hbox"><strong>Tip:</strong> Kung personal story lang, okay — basta may concept ka.</div>
+  <div class="g2">
+    <div class="field"><label>Brand / Company Name</label><input type="text" id="brandName" placeholder="e.g. Exponential University, SmartLiving PH"></div>
+    <div class="field"><label>Product / Service</label><input type="text" id="productName" placeholder="e.g. Online Course, Skincare, App"></div>
+  </div>
+  <div class="field"><label>Video Title <span class="req">*</span></label><input type="text" id="videoTitle" placeholder="e.g. Hindi Ko Inexpect na Magbabago 'To"></div>
+  <div class="field"><label>Main Message</label><textarea id="mainMessage" placeholder="Ano yung gusto mong ma-feel ng manonood?"></textarea></div>
+  <div class="sdiv"><div class="sdiv-label">Content Type</div><div class="sdiv-line"></div></div>
+  <div class="chip-label">Type ng UGC</div>
+  <div class="chips" id="ugcType">
+    <div class="chip selected" data-val="testimonial">💬 Testimonial</div>
+    <div class="chip" data-val="transformation">✨ Transformation</div>
+    <div class="chip" data-val="educational">📚 Educational</div>
+    <div class="chip" data-val="unboxing">📦 Unboxing</div>
+    <div class="chip" data-val="day-in-life">📱 Day in Life</div>
+    <div class="chip" data-val="glow-up story">🌟 Glow-Up</div>
+    <div class="chip" data-val="warning / awareness">⚠️ Warning / Awareness</div>
+    <div class="chip" data-val="review">⭐ Review</div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Platform</div><div class="sdiv-line"></div></div>
+  <div class="chips" id="platform">
+    <div class="chip selected" data-val="TikTok">🎵 TikTok</div>
+    <div class="chip" data-val="Instagram Reels">📸 IG Reels</div>
+    <div class="chip" data-val="YouTube Shorts">▶️ YT Shorts</div>
+    <div class="chip" data-val="Facebook Reels">👤 FB Reels</div>
+  </div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="goStep(2)">Susunod → Talent &amp; Look</button></div>
+</div>
+
+<!-- STEP 2 -->
+<div class="section" id="step2">
+  <div class="sec-title">👤 Talent Description</div>
+  <div class="sec-desc">I-describe ang talent sa video — gagamitin ito para sa AI image generation.</div>
+  <div class="sdiv"><div class="sdiv-label">Gender</div><div class="sdiv-line"></div></div>
+  <div class="chips" id="talentGender">
+    <div class="chip selected" data-val="Filipina woman">👩 Babae / Filipina</div>
+    <div class="chip" data-val="Filipino man">👨 Lalaki / Filipino</div>
+    <div class="chip" data-val="non-binary Filipino person">🧑 Non-binary</div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Physical Attributes</div><div class="sdiv-line"></div></div>
+  <div class="g2">
+    <div class="field"><label>Age Range</label>
+      <select id="talentAge">
+        <option value="18–23">18–23 (Gen Z)</option>
+        <option value="24–30" selected>24–30 (Young Professional)</option>
+        <option value="30–38">30–38 (Millennial)</option>
+        <option value="38–45">38–45 (Mature Professional)</option>
+        <option value="45–55">45–55 (Senior Professional)</option>
+      </select>
+    </div>
+    <div class="field"><label>Skin Tone</label>
+      <select id="skinTone">
+        <option value="warm morena">🌰 Warm Morena</option>
+        <option value="light morena">🌓 Light Morena</option>
+        <option value="fair / maputi">🌕 Fair / Maputi</option>
+        <option value="kayumanggi">🟫 Kayumanggi</option>
+        <option value="dark morena">🌑 Dark Morena</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="field"><label>Hair Style</label>
+      <select id="hairStyle">
+        <option value="long soft waves">Long – Soft Waves</option>
+        <option value="long straight sleek">Long – Straight/Sleek</option>
+        <option value="medium layered">Medium – Layered</option>
+        <option value="high ponytail">High Ponytail</option>
+        <option value="low neat bun">Low Neat Bun</option>
+        <option value="short bob">Short Bob</option>
+        <option value="short clean cut">Short Clean Cut (Male)</option>
+        <option value="buzz cut with fade">Buzz Cut / Fade (Male)</option>
+      </select>
+    </div>
+    <div class="field"><label>Hair Color</label>
+      <select id="hairColor">
+        <option value="natural black">Natural Black</option>
+        <option value="dark brown">Dark Brown</option>
+        <option value="brown with highlights">Brown w/ Highlights</option>
+        <option value="warm brown balayage">Warm Brown Balayage</option>
+        <option value="bleached / light blonde tips">Bleached Tips</option>
+      </select>
+    </div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Makeup / Grooming</div><div class="sdiv-line"></div></div>
+  <div class="chips" id="makeupLook">
+    <div class="chip selected" data-val="minimal natural glam — soft brows, light blush, lip gloss">🌸 Minimal / Natural Glam</div>
+    <div class="chip" data-val="no-makeup bare skin look — natural pores visible, clean face">💧 No-Makeup Look</div>
+    <div class="chip" data-val="soft glam — defined brows, subtle contour, nude lip">💄 Soft Glam</div>
+    <div class="chip" data-val="bold glam — full contour, bold lip, dramatic eye">💋 Bold Glam</div>
+    <div class="chip" data-val="clean groomed male look — well-groomed brows, moisturized natural skin">🧔 Groomed (Male)</div>
+    <div class="chip" data-val="clinical professional look — clean minimal, professional and neat">🏥 Clinical / Professional</div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Outfit</div><div class="sdiv-line"></div></div>
+  <div class="hbox hbox-gold"><strong>NEW:</strong> May Doctor coat, medical scrubs, at premium dark outfit options.</div>
+  <div class="outfit-grid" id="outfitPicker">
+    <div class="outfit-card selected" data-val="casual neutral tank top — black or white, daily wear, clean and confident">
+      <span class="oc-icon">🤍</span><span class="oc-name">Casual Tank</span>
+    </div>
+    <div class="outfit-card" data-val="oversized plain white or graphic tee, relaxed comfortable fit">
+      <span class="oc-icon">👕</span><span class="oc-name">Oversized Tee</span>
+    </div>
+    <div class="outfit-card" data-val="white doctor lab coat over a plain top — clean medical professional look">
+      <span class="oc-icon">🥼</span><span class="oc-name">Doctor Coat</span>
+    </div>
+    <div class="outfit-card" data-val="white doctor coat with stethoscope clearly visible around neck, medical doctor look">
+      <span class="oc-icon">🩺</span><span class="oc-name">Doctor + Stethoscope</span>
+    </div>
+    <div class="outfit-card" data-val="medical scrubs — light blue or sage green, hospital staff or nurse look">
+      <span class="oc-icon">🏥</span><span class="oc-name">Medical Scrubs</span>
+    </div>
+    <div class="outfit-card" data-val="business casual blazer over fitted top — polished but approachable, professional">
+      <span class="oc-icon">👔</span><span class="oc-name">Business Casual</span>
+    </div>
+    <div class="outfit-card" data-val="smart casual polo or neat button-down shirt — presentable, put-together">
+      <span class="oc-icon">👕</span><span class="oc-name">Smart Casual Polo</span>
+    </div>
+    <div class="outfit-card" data-val="dark solid premium top — black or deep navy, sleek and minimal, luxurious feel">
+      <span class="oc-icon">🖤</span><span class="oc-name">Dark Premium Top</span>
+    </div>
+    <div class="outfit-card" data-val="cozy ribbed knit top — neutral warm color, homey aesthetic">
+      <span class="oc-icon">🧶</span><span class="oc-name">Cozy Knit</span>
+    </div>
+    <div class="outfit-card" data-val="fitted crop top — trendy casual, confident everyday wear">
+      <span class="oc-icon">✨</span><span class="oc-name">Crop Top</span>
+    </div>
+  </div>
+  <div class="field" style="margin-top:13px"><label>Extra Physical Details (optional)</label>
+    <input type="text" id="extraPhysical" placeholder="e.g. small gold earrings, slight freckles, thick brows, eyeglasses…">
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+    <button class="btn btn-primary" onclick="goStep(3)">Susunod → Expression &amp; Emotion</button>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="section" id="step3">
+  <div class="sec-title">🎭 Facial Expression & Tonality</div>
+  <div class="sec-desc">Piliin ang expression at emotional tonality ng talent — ito ang personality ng video.</div>
+  <div class="sdiv"><div class="sdiv-label">Facial Expression</div><div class="sdiv-line"></div></div>
+  <div class="hbox"><strong>NEW:</strong> Serious/Educating, Worried/Concerned, at Casual — para mas targeted ang dating ng content.</div>
+  <div class="expr-grid" id="facialExpr">
+    <div class="expr-card expr-serious selected" data-val="serious focused educating expression — direct steady gaze, slightly raised brow, composed jaw, authority and credibility visible in eyes, parang nag-eexplain ng importante">
+      <span class="ec-emoji">🎓</span><span class="ec-name">Serious / Educating</span>
+      <span class="ec-desc">Direct gaze, authoritative — para sa educational content</span>
+    </div>
+    <div class="expr-card expr-worried" data-val="worried concerned expression — slightly furrowed brow, wide eyes with genuine urgency, parted lips with subtle tension, authentic worry — NOT overdramatic, real and believable">
+      <span class="ec-emoji">😟</span><span class="ec-name">Worried / Concerned</span>
+      <span class="ec-desc">Urgency, genuine concern — para sa warning or awareness</span>
+    </div>
+    <div class="expr-card expr-casual" data-val="relaxed casual natural expression — easy comfortable smile, slightly squinting eyes from genuine warmth, approachable and real, parang nagkukwento sa kaibigan">
+      <span class="ec-emoji">😊</span><span class="ec-name">Casual / Chill</span>
+      <span class="ec-desc">Natural, friendly — para sa everyday relatable content</span>
+    </div>
+    <div class="expr-card expr-sad" data-val="soft grateful emotional expression — eyes slightly glossy with held-back tears, small smile breaking through emotion, quiet vulnerability — NOT dramatic, subtle and real">
+      <span class="ec-emoji">🥺</span><span class="ec-name">Emotional / Grateful</span>
+      <span class="ec-desc">Almost crying pero hindi OA — transformation stories</span>
+    </div>
+    <div class="expr-card expr-happy" data-val="confident happy empowered expression — broad warm genuine smile, bright lively eyes, chin slightly lifted, proud and accomplished">
+      <span class="ec-emoji">😄</span><span class="ec-name">Happy / Confident</span>
+      <span class="ec-desc">Empowered, proud, celebratory</span>
+    </div>
+    <div class="expr-card" data-val="pensive thoughtful reflective expression — looking slightly off-camera, lips slightly pressed together, internal processing visible, nostalgic and introspective">
+      <span class="ec-emoji">🤔</span><span class="ec-name">Pensive / Thoughtful</span>
+      <span class="ec-desc">Reflective storytelling, introspective</span>
+    </div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Overall Tonality</div><div class="sdiv-line"></div></div>
+  <div class="tone-grid" id="tonality">
+    <div class="tcard t-edu selected" data-val="educational and credible — informative, calm authority, trusted expert tone, feels like advice from a knowledgeable professional">
+      <span class="tc-icon">📚</span><span class="tc-name">Educational</span><span class="tc-desc">Informative, calm authority</span>
+    </div>
+    <div class="tcard t-worried" data-val="worried and urgent — concerned tone, creates genuine awareness, motivates action through authentic worry — NOT fear-mongering, real and grounded">
+      <span class="tc-icon">⚠️</span><span class="tc-name">Worried / Urgent</span><span class="tc-desc">Awareness, genuine concern</span>
+    </div>
+    <div class="tcard t-grat" data-val="soft gratitude and emotional glow-up — processing a life transformation, emotional but not dramatic, quiet success energy">
+      <span class="tc-icon">🌸</span><span class="tc-name">Grateful / Emotional</span><span class="tc-desc">Transformation, quiet success</span>
+    </div>
+    <div class="tcard t-conf" data-val="confident and aspirational — quiet flex energy, empowered, motivational without being preachy, boss energy">
+      <span class="tc-icon">💪</span><span class="tc-name">Confident / Aspirational</span><span class="tc-desc">Quiet flex, empowered</span>
+    </div>
+    <div class="tcard t-hype" data-val="high energy and hype — excited, enthusiastic, contagious upbeat energy, attention-grabbing from first second">
+      <span class="tc-icon">🔥</span><span class="tc-name">Hype / Excited</span><span class="tc-desc">Contagious energy</span>
+    </div>
+    <div class="tcard t-calm" data-val="calm and grounded — peaceful slow-burn credibility, like a wise trusted friend sharing personal advice">
+      <span class="tc-icon">🧘</span><span class="tc-name">Calm / Grounded</span><span class="tc-desc">Wise friend energy</span>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+    <button class="btn btn-primary" onclick="goStep(4)">Susunod → Scene &amp; Lighting</button>
+  </div>
+</div>
+
+<!-- STEP 4 -->
+<div class="section" id="step4">
+  <div class="sec-title">🎬 Scene, Lighting & Camera</div>
+  <div class="sec-desc">Setting at visual environment ng video.</div>
+  <div class="sdiv"><div class="sdiv-label">Background / Setting</div><div class="sdiv-line"></div></div>
+  <div class="scene-grid" id="scenePicker">
+    <div class="scene-card s-dark selected" data-val="premium dark studio-style home setup — deep dark walls, minimal ambient glow, moody luxury atmosphere, clean and sophisticated">
+      <span class="sc-icon">🌑</span><span class="sc-name">Premium Dark Setup</span><span class="sc-sub">Dark walls, moody luxury</span>
+    </div>
+    <div class="scene-card s-red" data-val="dark room with red LED light strip reflecting on background wall — moody atmospheric setting, modern bedroom or studio, red ambient glow behind subject">
+      <span class="sc-icon">🔴</span><span class="sc-name">Red LED Room</span><span class="sc-sub">Red LED wall glow, dark bg</span>
+    </div>
+    <div class="scene-card" data-val="dark room with purple or blue LED ambient light on wall — cool moody aesthetic, modern studio or gamer-style setup, neon glow reflection">
+      <span class="sc-icon">🟣</span><span class="sc-name">Purple/Blue LED Room</span><span class="sc-sub">Cool neon glow, modern moody</span>
+    </div>
+    <div class="scene-card" data-val="inside Mercedes-Benz luxury sedan interior — black leather seats, clean stitching, steering wheel partially visible, dashboard ambient glow">
+      <span class="sc-icon">🚗</span><span class="sc-name">Luxury Car Interior</span><span class="sc-sub">Mercedes sedan, leather</span>
+    </div>
+    <div class="scene-card" data-val="aesthetically arranged study desk or home office — books, warm lamp, clean workspace, intellectual productive vibe">
+      <span class="sc-icon">📚</span><span class="sc-name">Study / Home Office</span><span class="sc-sub">Books, lamp, workspace</span>
+    </div>
+    <div class="scene-card" data-val="cozy coffee shop cafe — warm bokeh background, blurred tables and ambient lights, indie aesthetic">
+      <span class="sc-icon">☕</span><span class="sc-name">Coffee Shop / Cafe</span><span class="sc-sub">Warm bokeh, indie vibe</span>
+    </div>
+    <div class="scene-card" data-val="clean minimal bedroom or living room — neutral white or beige walls, aesthetic minimal decor, aspirational homey feel">
+      <span class="sc-icon">🛋️</span><span class="sc-name">Minimal Home</span><span class="sc-sub">Clean neutral, cozy</span>
+    </div>
+    <div class="scene-card s-med" data-val="hospital corridor or clinic hallway — medical institution background, clean white walls, professional medical environment">
+      <span class="sc-icon">🏥</span><span class="sc-name">Hospital / Clinic</span><span class="sc-sub">Medical setting, clinical</span>
+    </div>
+    <div class="scene-card" data-val="outdoor environment — park, building rooftop, or city street, natural depth and open space">
+      <span class="sc-icon">🌅</span><span class="sc-name">Outdoor / Labas</span><span class="sc-sub">Park, rooftop, city street</span>
+    </div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Lighting Style</div><div class="sdiv-line"></div></div>
+  <div class="hbox hbox-red"><strong>NEW:</strong> Red LED reflection, dark warm lamp, at neon/cool ambient options.</div>
+  <div class="light-grid" id="lightingPicker">
+    <div class="lcard l-lamp selected" data-val="premium dark ambient lighting — single warm table lamp as key light source, deep shadows on opposite side of face, moody intimate atmosphere, chiaroscuro effect">
+      <span class="lc-icon">🪔</span><span class="lc-name">Dark + Warm Lamp</span><span class="lc-sub">Single lamp key, deep shadows</span>
+    </div>
+    <div class="lcard l-red" data-val="dark room with red LED light strip as background wall accent — face lit by soft frontal light, red glow reflects dramatically on background wall, cinematic moody contrast">
+      <span class="lc-icon">🔴</span><span class="lc-name">Red LED Wall Reflection</span><span class="lc-sub">Red bg glow, cinematic</span>
+    </div>
+    <div class="lcard l-neon" data-val="cool blue or purple LED neon ambient light — modern techy aesthetic, reflects subtly on skin and background wall, youthful premium studio feel">
+      <span class="lc-icon">💜</span><span class="lc-name">Blue/Purple Neon LED</span><span class="lc-sub">Cool neon ambient, modern</span>
+    </div>
+    <div class="lcard" data-val="golden hour natural window light — warm orange-gold sunlight from side, beautiful skin glow, soft natural look">
+      <span class="lc-icon">🌅</span><span class="lc-name">Golden Hour</span><span class="lc-sub">Warm side light, skin glow</span>
+    </div>
+    <div class="lcard" data-val="soft diffused natural daylight from window — cool clean white light, no harsh shadows, realistic and natural">
+      <span class="lc-icon">🪟</span><span class="lc-name">Soft Daylight</span><span class="lc-sub">Diffused window, clean</span>
+    </div>
+    <div class="lcard" data-val="ring light vlogger setup — soft even frontal lighting on face, clean beauty creator style, minimal shadows">
+      <span class="lc-icon">💡</span><span class="lc-name">Ring Light</span><span class="lc-sub">Even flat light, vlogger style</span>
+    </div>
+    <div class="lcard" data-val="bright airy overexposed soft lighting — lifestyle feel, white and fresh, overly clean and aspirational">
+      <span class="lc-icon">☀️</span><span class="lc-name">Bright &amp; Airy</span><span class="lc-sub">Overexposed, fresh lifestyle</span>
+    </div>
+    <div class="lcard" data-val="clinical bright fluorescent overhead lighting — hospital or office realistic hard light, professional institutional feel">
+      <span class="lc-icon">🔆</span><span class="lc-name">Clinical / Fluorescent</span><span class="lc-sub">Hard overhead, medical/office</span>
+    </div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Camera Style</div><div class="sdiv-line"></div></div>
+  <div class="chips" id="cameraStyle">
+    <div class="chip selected" data-val="iPhone 15 Pro front camera selfie, handheld UGC, subtle breathing micro-shake">📱 iPhone Selfie (UGC)</div>
+    <div class="chip" data-val="handheld vlog camera, slightly wider angle, natural shake">🎥 Vlog Style</div>
+    <div class="chip" data-val="static tripod shot, centered clean framing, no movement">🎞️ Static Tripod</div>
+    <div class="chip" data-val="POV first person immersive camera angle">👁️ POV Shot</div>
+    <div class="chip" data-val="over-the-shoulder medium shot, partial side profile visible">🎬 Over Shoulder</div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Video Specs</div><div class="sdiv-line"></div></div>
+  <div class="g2">
+    <div class="field"><label>Video Length</label>
+      <select id="videoLength"><option value="10">10 seconds</option><option value="15">15 seconds</option><option value="30">30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select>
+    </div>
+    <div class="field"><label>Aspect Ratio</label>
+      <select id="aspectRatio"><option value="9:16" selected>9:16 – Portrait (TikTok)</option><option value="1:1">1:1 – Square</option><option value="16:9">16:9 – Landscape</option></select>
+    </div>
+  </div>
+  <div class="sdiv"><div class="sdiv-label">Realism Rules</div><div class="sdiv-line"></div></div>
+  <div class="toggle-row"><div class="toggle-info">No Filters / Beauty Smoothing<small>Raw realistic — walang AI beautification</small></div><label class="toggle"><input type="checkbox" id="noFilters" checked><span class="slider"></span></label></div>
+  <div class="toggle-row"><div class="toggle-info">One Continuous Take (No Cuts)<small>Para authentic ang UGC feel</small></div><label class="toggle"><input type="checkbox" id="noCuts" checked><span class="slider"></span></label></div>
+  <div class="toggle-row"><div class="toggle-info">No Background Music<small>Raw audio lang — hindi pang-ad ang dating</small></div><label class="toggle"><input type="checkbox" id="noMusic" checked><span class="slider"></span></label></div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(3)">← Back</button>
+    <button class="btn btn-primary" onclick="goStep(5)">Susunod → Script &amp; Audio</button>
+  </div>
+</div>
+
+<!-- STEP 5 -->
+<div class="section" id="step5">
+  <div class="sec-title">📝 Script & Audio</div>
+  <div class="sec-desc">Isulat ang script at audio details ng video.</div>
+  <div class="hbox"><strong>Tip:</strong> Taglish ang pinakaepektibo — mix ng Tagalog + English. Idescribe din ang actions (exhales, pauses, etc.)</div>
+  <div class="field"><label>Full Script (Taglish) <span class="req">*</span></label>
+    <textarea id="scriptText" style="min-height:160px;" placeholder="e.g.
+She exhales softly.
+'Hindi ko talaga inexpect na aabot ako dito…'
+
+Small pause.
+
+'Dati… parang survival mode lang ako araw-araw.'
+Voice softens.
+
+'Nag-aral lang talaga ako… e-commerce, AI…'
+
+'Tapos unti-unti… nag-iba yung takbo ng buhay ko.'
+
+'Grabe… sobrang thankful ako.'"></textarea>
+  </div>
+  <div class="g2">
+    <div class="field"><label>Voice Quality</label>
+      <select id="voiceQuality">
+        <option value="slightly shaky and emotional — processing gratitude, voice cracks slightly on key words">Shaky / Emotional</option>
+        <option value="calm authoritative educating voice — clear, steady, credible, professional">Calm / Educating</option>
+        <option value="worried and urgent — slightly fast pacing, tension in voice, authentic concern">Worried / Urgent</option>
+        <option value="confident and clear — empowered assertive delivery">Confident &amp; Clear</option>
+        <option value="soft whisper-like, intimate, close to mic">Soft / Whisper</option>
+        <option value="upbeat excited and energetic pacing">Upbeat / Excited</option>
+        <option value="casual conversational chill — like talking sa kaibigan">Casual / Chill</option>
+      </select>
+    </div>
+    <div class="field"><label>Background Audio</label>
+      <select id="bgAudio">
+        <option value="raw iPhone mic, soft car cabin echo, natural breathing sounds">Raw mic + Car cabin echo</option>
+        <option value="raw mic, dark quiet room ambience, subtle faint hum">Raw mic + Dark quiet room</option>
+        <option value="raw mic, natural room tone, slight background ambience">Raw mic + Room tone</option>
+        <option value="raw mic, hospital or clinic ambience — distant footsteps, clinical environment hum">Raw mic + Hospital ambience</option>
+        <option value="soft lo-fi background music at low subtle volume">Soft Lo-fi BGM</option>
+        <option value="pure voice only — completely silent background">Pure Voice Only</option>
+      </select>
+    </div>
+  </div>
+  <div class="field"><label>Desired Viewer Reactions (optional)</label>
+    <input type="text" id="viewerReactions" placeholder="e.g. 'Nakakaiyak to', 'Totoo ba to?', 'Gusto ko rin', 'Ano kaya ginawa niya?'">
+  </div>
+  <div class="field"><label>Call to Action (optional)</label>
+    <input type="text" id="cta" placeholder="e.g. 'Link sa bio!', 'Comment LEARN', 'Follow for more', wala">
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(4)">← Back</button>
+    <button class="btn btn-primary" onclick="generateOutput()">✨ Generate All Prompts</button>
+  </div>
+</div>
+
+<!-- STEP 6 OUTPUT -->
+<div class="section" id="step6">
+  <div class="sec-title">🎉 Your Generated Prompts</div>
+  <div class="sec-desc">Copy at i-paste sa AI video generator o image tool.</div>
+  <div class="out-tabs">
+    <div class="tab active" onclick="switchTab('text',this)">📄 Text Prompt</div>
+    <div class="tab" onclick="switchTab('json',this)">{ } JSON Prompt</div>
+    <div class="tab" onclick="switchTab('image',this)">🖼️ Gemini Image Prompts</div>
+  </div>
+  <div class="out-panel active" id="panel-text">
+    <div style="position:relative"><div class="code-box" id="textOutput"></div><button class="copy-abs" onclick="copyEl('textOutput',this)">Copy</button></div>
+  </div>
+  <div class="out-panel" id="panel-json">
+    <div style="position:relative"><div class="code-box" id="jsonOutput"></div><button class="copy-abs" onclick="copyEl('jsonOutput',this)">Copy</button></div>
+  </div>
+  <div class="out-panel" id="panel-image">
+    <div class="hbox hbox-gold" style="margin-bottom:14px">
+      <strong>Para sa Gemini AI Pro / Imagen 3:</strong> I-generate muna ang <strong>Variant 5 (Reference / Neutral)</strong> as base face. I-attach sa lahat ng susunod na generations para consistent ang mukha.
+    </div>
+    <div id="imageOutput"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="goStep(5)">← Edit</button>
+    <button class="btn btn-primary" onclick="goStep(1)">🔄 New Prompt</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+let cur=1;const TOTAL=6;
+function goStep(n){
+  document.getElementById('step'+cur).classList.remove('active');
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-item').forEach((el,i)=>{
+    el.classList.remove('active','done');
+    if(i+1<n)el.classList.add('done');
+    if(i+1===n)el.classList.add('active');
+  });
+  document.getElementById('pBar').style.width=((n/TOTAL)*100)+'%';
+  cur=n;window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.chips').forEach(g=>{
+  g.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{g.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');});
+  });
+});
+['outfit-card','scene-card','expr-card','tcard','lcard'].forEach(cls=>{
+  document.querySelectorAll('.'+cls).forEach(c=>{
+    c.addEventListener('click',()=>{document.querySelectorAll('.'+cls).forEach(x=>x.classList.remove('selected'));c.classList.add('selected');});
+  });
+});
+function getChip(id){const s=document.querySelector('#'+id+' .chip.selected');return s?s.dataset.val:'';}
+function getCard(cls){const s=document.querySelector('.'+cls+'.selected');return s?s.dataset.val:'';}
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.out-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');document.getElementById('panel-'+name).classList.add('active');
+}
+function copyEl(id,btn){
+  navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>{
+    const o=btn.textContent;btn.textContent='✓ Copied!';btn.style.color='var(--green)';
+    setTimeout(()=>{btn.textContent=o;btn.style.color='';},2000);
+  });
+}
+function copyText(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const o=btn.textContent;btn.textContent='✓ Copied!';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';
+    setTimeout(()=>{btn.textContent=o;btn.style.color='';btn.style.borderColor='';},2000);
+  });
+}
+function getData(){
+  return{
+    brand:document.getElementById('brandName').value||'Personal Story',
+    product:document.getElementById('productName').value||'',
+    title:document.getElementById('videoTitle').value||'Untitled UGC Video',
+    message:document.getElementById('mainMessage').value||'',
+    ugcType:getChip('ugcType'),platform:getChip('platform'),
+    gender:getChip('talentGender'),age:document.getElementById('talentAge').value,
+    skin:document.getElementById('skinTone').value,hair:document.getElementById('hairStyle').value,
+    hairColor:document.getElementById('hairColor').value,makeup:getChip('makeupLook'),
+    outfit:getCard('outfit-card'),extraPhysical:document.getElementById('extraPhysical').value,
+    expression:getCard('expr-card'),tonality:getCard('tcard'),
+    scene:getCard('scene-card'),lighting:getCard('lcard'),
+    camera:getChip('cameraStyle'),videoLen:document.getElementById('videoLength').value,
+    ratio:document.getElementById('aspectRatio').value,
+    noFilters:document.getElementById('noFilters').checked,
+    noCuts:document.getElementById('noCuts').checked,noMusic:document.getElementById('noMusic').checked,
+    script:document.getElementById('scriptText').value||'(Free form delivery)',
+    voice:document.getElementById('voiceQuality').value,audio:document.getElementById('bgAudio').value,
+    reactions:document.getElementById('viewerReactions').value,cta:document.getElementById('cta').value
+  };
+}
+function generateOutput(){
+  const d=getData();
+  document.getElementById('textOutput').textContent=buildText(d);
+  document.getElementById('jsonOutput').textContent=buildJSON(d);
+  buildImages(d);goStep(6);
+}
+function buildText(d){
+  return `Title: "${d.title}"
+${d.brand!=='Personal Story'?`Brand: ${d.brand}${d.product?' — '+d.product:''}`:''}\n
+CONCEPT:
+Hyper-realistic ${d.platform} UGC video. ${d.ugcType.charAt(0).toUpperCase()+d.ugcType.slice(1)} content.
+${d.message}
+Aspirational but grounded. Feels like a real phone video, NOT an ad.
+
+VIDEO SPECS:
+• Aspect Ratio: ${d.ratio}
+• Length: ${d.videoLen} seconds
+• Style: Hyper-realistic phone UGC
+• Language: Natural Taglish
+• Tonality: ${d.tonality}
+• Take: ${d.noCuts?'One continuous take — NO cuts':'Natural cuts allowed'}
+
+CAMERA & RECORDING (UGC LOCK):
+• Camera: ${d.camera}
+• Cuts: ${d.noCuts?'NONE — single continuous take':'Minimal natural cuts only'}
+• Filters: ${d.noFilters?'NONE — no filters, no beauty smoothing, no retouching':'Minimal if needed'}
+• Exposure: Natural HDR behavior
+• Start: Recording starts mid-hesitation — like talent debated pressing record
+
+LOCATION & SCENE:
+• Setting: ${d.scene}
+• Lighting: ${d.lighting}
+
+SUBJECT (${d.gender}, ${d.age}):
+• Skin Tone: ${d.skin}
+• Hair: ${d.hair}, ${d.hairColor}
+• Outfit: ${d.outfit}
+• Makeup / Grooming: ${d.makeup}
+${d.extraPhysical?'• Additional Details: '+d.extraPhysical:''}
+• IMPORTANT: NOT a celebrity — familiar aspirational archetype only.
+
+FACIAL EXPRESSION & EMOTIONAL PERFORMANCE (CRITICAL):
+• Expression: ${d.expression}
+• Overall Tonality: ${d.tonality}
+• Voice: ${d.voice}
+• She/He is PROCESSING — NOT PERFORMING. Must feel completely real and unrehearsed.
+
+SCRIPT (~${d.videoLen} seconds):
+${d.script}
+
+AUDIO:
+• ${d.audio}
+• Music: ${d.noMusic?'NONE — raw audio only':'Soft background music allowed'}
+• Sound Effects: NONE
+
+STRICT REALISM RULES:
+• NO beauty filters or face warping
+• NO celebrity claims or implications
+• NO hand/finger glitches or AI artifacts
+• NO exaggerated emotions — subtle and real only
+• NO phone UI visible in frame
+• MUST HAVE: Natural blinking, accurate lip sync, realistic proportions, stable geometry
+
+FINAL FEEL:
+Looks like a real ${d.gender}. Looks like a real moment. Aspirational but achievable.
+${d.reactions?'\nDesired Viewer Reactions:\n'+d.reactions:''}${d.cta?'\nCall to Action: '+d.cta:''}`;
+}
+function buildJSON(d){
+  return JSON.stringify({
+    title:d.title,brand:d.brand!=='Personal Story'?d.brand:null,product:d.product||null,
+    concept:`Hyper-realistic ${d.platform} UGC — ${d.ugcType}. ${d.message}`,
+    video_specs:{aspect_ratio:d.ratio,length_seconds:parseInt(d.videoLen),style:"Hyper-realistic phone UGC",language:"Natural Taglish",tonality:d.tonality,take:d.noCuts?"One continuous take only":"Natural cuts allowed"},
+    camera_recording:{camera:d.camera,cuts:!d.noCuts,filters:!d.noFilters,beauty_smoothing:false,exposure:"Natural HDR behavior",start_style:"Mid-hesitation, like talent debated pressing record"},
+    scene:{setting:d.scene,lighting:d.lighting},
+    subject:{gender:d.gender,age_range:d.age,skin_tone:d.skin,hair:{style:d.hair,color:d.hairColor},outfit:d.outfit,makeup_grooming:d.makeup,extra_details:d.extraPhysical||null,rules:{no_celebrity_implication:true,archetype:"Familiar aspirational — not famous"}},
+    emotional_performance:{priority:"CRITICAL",facial_expression:d.expression,overall_tonality:d.tonality,voice:d.voice,direction:"PROCESSING — not performing. Must feel real and unrehearsed."},
+    script:{duration:`Approx ${d.videoLen} seconds`,lines:d.script.split('\n').filter(l=>l.trim())},
+    audio:{environment:d.audio,music:!d.noMusic,sound_effects:false},
+    strict_realism_rules:{no_beauty_filters:true,no_celebrity_claims:true,no_face_warping:true,no_hand_glitches:true,no_exaggerated_emotion:true,no_phone_ui:true},
+    must_have:["Natural blinking","Accurate lip sync","Realistic proportions","Stable geometry","Subtle authentic emotion only"],
+    desired_viewer_reactions:d.reactions?d.reactions.split(',').map(s=>s.trim()):[],
+    call_to_action:d.cta||null
+  },null,2);
+}
+function buildImages(d){
+  const base=`${d.age} year old ${d.gender}, ${d.skin} skin tone, ${d.hair} ${d.hairColor} hair, wearing ${d.outfit}, ${d.makeup}, natural Filipino skin texture with visible pores, warm expressive features — NOT a celebrity, everyday aspirational person, ultra-realistic photography, shot on iPhone 15 Pro, natural HDR exposure, no beauty filters, no retouching, no AI artifacts`;
+  const scene=`${d.scene}, ${d.lighting}`;
+  const variants=[
+    {tag:"Hero – Main Expression",angle:"close-up selfie front camera slightly above eye level",expr:d.expression,extra:"hand holding phone visible at frame edge, subtle breathing micro-movement blur"},
+    {tag:"Serious / Educating",angle:"straight-on front camera medium close-up",expr:"serious focused authoritative expression — direct steady eye contact, composed jaw, raised brow, credible and trustworthy, parang nag-eexplain ng importante sa camera",extra:"no-nonsense gaze, subtle intensity, confident upright posture"},
+    {tag:"Worried / Concerned",angle:"close-up front camera centered",expr:"genuinely worried and concerned expression — furrowed brow, wide eyes with real urgency, slightly parted lips with subtle tension, authentic worry — NOT overdramatic, completely believable",extra:"slight lean forward, visible forehead tension, eyes scanning"},
+    {tag:"Casual / Natural Candid",angle:"3/4 profile angle slightly off-center",expr:"completely relaxed casual expression — easy natural smile, eyes slightly squinting from genuine warmth, soft jaw, looking off-frame naturally",extra:"bokeh background depth, natural rim lighting catching hair"},
+    {tag:"Reference / Neutral (Base Shot — Generate First)",angle:"straight front symmetrical framing medium close-up",expr:"neutral resting expression — soft slight closed-mouth smile, fully relaxed face muscles, direct forward gaze",extra:"maximum face detail, sharp focus, reference consistency shot — use this as seed for all other image generations"},
+    {tag:"Full Context Wide — Outfit Visible",angle:"wider selfie showing upper body and background",expr:"natural relaxed, at ease in environment, slight smile",extra:`${scene} clearly visible in background, full outfit visible, natural depth of field`}
+  ];
+  const container=document.getElementById('imageOutput');container.innerHTML='';
+  variants.forEach((v,i)=>{
+    const prompt=`${v.angle}, ${v.expr}, ${base}, ${scene}, ${v.extra}, 9:16 portrait orientation, photorealistic, cinematic color grading, sharp focus on face, no AI artifacts, no watermark`;
+    const card=document.createElement('div');card.className='icard';
+    card.innerHTML=`<div class="icard-head"><div class="icard-tag">Variant ${i+1} · ${v.tag}</div><button class="icard-copy" onclick='copyText(this,\`${prompt.replace(/`/g,"'").replace(/\\/g,'\\\\')}\`)'>Copy</button></div><div class="icard-prompt">${prompt}</div>`;
+    container.appendChild(card);
+  });
+  const tip=document.createElement('div');
+  tip.className='icard';tip.style.cssText='border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.04)';
+  tip.innerHTML=`<div style="font-size:13px;color:var(--gold);font-weight:700;margin-bottom:8px">💡 Gemini / Imagen 3 Consistency Tips</div><div style="font-size:11.5px;color:var(--muted);line-height:1.75"><strong style="color:var(--muted2)">Step 1:</strong> I-generate muna ang <strong style="color:var(--gold)">Variant 5 (Reference / Neutral)</strong> as base face.<br><strong style="color:var(--muted2)">Step 2:</strong> I-attach sa lahat ng susunod na generation at dagdagan ng:<br><span style="color:#c0c0de;font-family:'Courier New',monospace;font-size:11px;display:block;margin:5px 0 5px 12px;padding:6px 10px;background:#0a0a12;border-radius:5px">"same person as reference image, exact same facial features, same skin tone, same hair"</span><strong style="color:var(--muted2)">Step 3:</strong> Gamitin ang parehong <strong style="color:var(--gold)">seed number</strong> kung available sa platform.<br><strong style="color:var(--muted2)">Step 4:</strong> Para sa Gemini: simulan ng <em style="color:#c0c0de">"Generate a photorealistic portrait of a person matching this exact description:"</em></div>`;
+  container.appendChild(tip);
+}
+</script>
+</body>
+</html>
